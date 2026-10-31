@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 5338WqVReEXcDEbaykSSAMWX582SjYoi67I5KFqh6ZbUNqSAIgSTfdxUTJtonPu
+\restrict vqNHbYg29GCiGvUOHPMgFJSlT6CY3Syagh0cYhijNcTQ1ublUPmzNbGw2qg6Afq
 
 -- Dumped from database version 18.0
 -- Dumped by pg_dump version 18.0
@@ -27,6 +27,110 @@ CREATE SCHEMA smsagribd_sc;
 
 
 ALTER SCHEMA smsagribd_sc OWNER TO smsagribd_sc;
+
+--
+-- Name: bigint_bool_eq(bigint, boolean); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.bigint_bool_eq(i bigint, b boolean) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    AS $$ SELECT (i != 0) = b; $$;
+
+
+ALTER FUNCTION smsagribd_sc.bigint_bool_eq(i bigint, b boolean) OWNER TO smsagribd_sc;
+
+--
+-- Name: bool_bigint_eq(boolean, bigint); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.bool_bigint_eq(b boolean, i bigint) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    AS $$ SELECT b = (i != 0); $$;
+
+
+ALTER FUNCTION smsagribd_sc.bool_bigint_eq(b boolean, i bigint) OWNER TO smsagribd_sc;
+
+--
+-- Name: bool_int_eq(boolean, integer); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.bool_int_eq(b boolean, i integer) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    AS $$ SELECT b = (i != 0); $$;
+
+
+ALTER FUNCTION smsagribd_sc.bool_int_eq(b boolean, i integer) OWNER TO smsagribd_sc;
+
+--
+-- Name: database(); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.database() RETURNS character varying
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+BEGIN
+    RETURN 'smsagribd_sc';
+END;
+$$;
+
+
+ALTER FUNCTION smsagribd_sc.database() OWNER TO smsagribd_sc;
+
+--
+-- Name: date_add(timestamp with time zone, interval); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.date_add(ts timestamp with time zone, iv interval) RETURNS timestamp with time zone
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+BEGIN
+    RETURN ts + iv;
+END;
+$$;
+
+
+ALTER FUNCTION smsagribd_sc.date_add(ts timestamp with time zone, iv interval) OWNER TO smsagribd_sc;
+
+--
+-- Name: date_sub(timestamp with time zone, integer); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.date_sub(ts timestamp with time zone, minutes integer) RETURNS timestamp with time zone
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+BEGIN
+    RETURN ts - (minutes || ' minutes')::interval;
+END;
+$$;
+
+
+ALTER FUNCTION smsagribd_sc.date_sub(ts timestamp with time zone, minutes integer) OWNER TO smsagribd_sc;
+
+--
+-- Name: date_sub(timestamp with time zone, interval); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.date_sub(ts timestamp with time zone, iv interval) RETURNS timestamp with time zone
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+BEGIN
+    RETURN ts - iv;
+END;
+$$;
+
+
+ALTER FUNCTION smsagribd_sc.date_sub(ts timestamp with time zone, iv interval) OWNER TO smsagribd_sc;
+
+--
+-- Name: int_bool_eq(integer, boolean); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.int_bool_eq(i integer, b boolean) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    AS $$ SELECT (i != 0) = b; $$;
+
+
+ALTER FUNCTION smsagribd_sc.int_bool_eq(i integer, b boolean) OWNER TO smsagribd_sc;
 
 --
 -- Name: on_update_current_timestamp_access_tokens(); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
@@ -619,6 +723,94 @@ $$;
 
 
 ALTER FUNCTION smsagribd_sc.on_update_current_timestamp_verification_otps() OWNER TO smsagribd_sc;
+
+--
+-- Name: sum_boolean_accum(bigint, boolean); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.sum_boolean_accum(state bigint, b boolean) RETURNS bigint
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+BEGIN
+    IF b THEN
+        RETURN state + 1;
+    ELSE
+        RETURN state;
+    END IF;
+END;
+$$;
+
+
+ALTER FUNCTION smsagribd_sc.sum_boolean_accum(state bigint, b boolean) OWNER TO smsagribd_sc;
+
+--
+-- Name: sum(boolean); Type: AGGREGATE; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE AGGREGATE smsagribd_sc.sum(boolean) (
+    SFUNC = smsagribd_sc.sum_boolean_accum,
+    STYPE = bigint,
+    INITCOND = '0'
+);
+
+
+ALTER AGGREGATE smsagribd_sc.sum(boolean) OWNER TO smsagribd_sc;
+
+--
+-- Name: =; Type: OPERATOR; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE OPERATOR smsagribd_sc.= (
+    FUNCTION = smsagribd_sc.bool_int_eq,
+    LEFTARG = boolean,
+    RIGHTARG = integer,
+    COMMUTATOR = OPERATOR(smsagribd_sc.=)
+);
+
+
+ALTER OPERATOR smsagribd_sc.= (boolean, integer) OWNER TO smsagribd_sc;
+
+--
+-- Name: =; Type: OPERATOR; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE OPERATOR smsagribd_sc.= (
+    FUNCTION = smsagribd_sc.bool_bigint_eq,
+    LEFTARG = boolean,
+    RIGHTARG = bigint,
+    COMMUTATOR = OPERATOR(smsagribd_sc.=)
+);
+
+
+ALTER OPERATOR smsagribd_sc.= (boolean, bigint) OWNER TO smsagribd_sc;
+
+--
+-- Name: =; Type: OPERATOR; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE OPERATOR smsagribd_sc.= (
+    FUNCTION = smsagribd_sc.int_bool_eq,
+    LEFTARG = integer,
+    RIGHTARG = boolean,
+    COMMUTATOR = OPERATOR(smsagribd_sc.=)
+);
+
+
+ALTER OPERATOR smsagribd_sc.= (integer, boolean) OWNER TO smsagribd_sc;
+
+--
+-- Name: =; Type: OPERATOR; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE OPERATOR smsagribd_sc.= (
+    FUNCTION = smsagribd_sc.bigint_bool_eq,
+    LEFTARG = bigint,
+    RIGHTARG = boolean,
+    COMMUTATOR = OPERATOR(smsagribd_sc.=)
+);
+
+
+ALTER OPERATOR smsagribd_sc.= (bigint, boolean) OWNER TO smsagribd_sc;
 
 SET default_tablespace = '';
 
@@ -2426,6 +2618,9 @@ COPY smsagribd_sc.batches (id, user_id, sender_id, body, source_type, source_ip,
 1	3	1	Hello from SMS Aggregator on smsagri.softcents.com	manual	138.252.125.207	{"recipients":[{"phone":"01712345678","values":{}}]}	completed	approved	1	1	0	\N	\N	2026-10-31 18:36:07-04	1	2026-10-31 18:36:07-04	2026-10-31 18:36:07-04
 2	3	1	Hello from SMS Aggregator on smsagri.softcents.com!	manual	138.252.125.207	{"recipients":[{"phone":"01712345678","values":{}}]}	completed	approved	1	1	0	\N	\N	2026-10-31 18:36:27-04	1	2026-10-31 18:36:27-04	2026-10-31 18:36:27-04
 3	3	1	Hello from SMS Aggregator on smsagri.softcents.com!	manual	138.252.125.207	{"recipients":[{"phone":"01712345678","values":{}}]}	completed	approved	1	1	0	\N	\N	2026-10-31 18:37:04-04	1	2026-10-31 18:37:04-04	2026-10-31 18:37:04-04
+4	3	1	Test SMS via PostgreSQL and RabbitMQ	manual	127.0.0.1	{"recipients":[{"phone":"01712345678","values":{}}]}	completed	approved	1	1	0	\N	\N	2026-10-31 19:26:39.609684-04	1	2026-10-31 19:25:25.802375-04	2026-10-31 19:26:39.609684-04
+5	3	1	Live RabbitMQ & PostgreSQL SMS test	manual	127.0.0.1	{"recipients":[{"phone":"01799998888","values":{}}]}	completed	approved	1	1	0	\N	\N	2026-10-31 19:27:09.486202-04	1	2026-10-31 19:27:09.479442-04	2026-10-31 19:27:09.486202-04
+6	3	1	Hello PostgreSQL and RabbitMQ Live	manual	127.0.0.1	{"recipients":[{"phone":"01799990000","values":{}}]}	completed	approved	1	1	0	\N	\N	2026-10-31 19:28:21.065917-04	1	2026-10-31 19:28:21.047301-04	2026-10-31 19:28:21.065917-04
 \.
 
 
@@ -2549,6 +2744,9 @@ COPY smsagribd_sc.messages (id, user_id, batch_id, sender_id, gateway_id, "to", 
 1	3	1	1	\N	+8801712345678	Hello from SMS Aggregator on smsagri.softcents.com	f	1	0.3000	0.3000	Grameenphone	0.0000	0.0000	0.0000		web	138.252.125.207	failed	\N	\N	0	\N	\N	\N	2026-10-31 18:36:08-04	No enabled gateway resolved for message	2026-10-31 18:36:07-04	2026-10-31 18:36:08-04
 2	3	2	1	1	+8801712345678	Hello from SMS Aggregator on smsagri.softcents.com!	f	1	0.3000	0.3000	Grameenphone	0.0000	0.0000	0.0000		web	138.252.125.207	failed	\N	\N	0	\N	\N	\N	2026-10-31 18:36:27-04	Failed to decrypt gateway credentials: MAC mismatch: payload was tampered with or key is incorrect	2026-10-31 18:36:27-04	2026-10-31 18:36:27-04
 3	3	3	1	1	+8801712345678	Hello from SMS Aggregator on smsagri.softcents.com!	f	1	0.3000	0.3000	Grameenphone	0.0000	0.0000	0.0000		web	138.252.125.207	sent	\N	mock-log-1793486225154102997	1	2026-11-01 04:38:05-05	2026-11-01 04:37:05-05	\N	\N	\N	2026-10-31 18:37:04-04	2026-11-01 04:37:05-05
+5	3	5	1	1	+8801799998888	Live RabbitMQ & PostgreSQL SMS test	f	1	0.3000	0.3000	Grameenphone	0.0000	0.0000	0.0000		web	127.0.0.1	sent	\N	test	1	2026-10-31 19:27:24.372959-04	2026-10-31 19:27:24.372959-04	\N	\N	\N	2026-10-31 19:27:09.482452-04	2026-10-31 19:27:24.372959-04
+6	3	6	1	1	+8801799990000	Hello PostgreSQL and RabbitMQ Live	f	1	0.3000	0.3000	Grameenphone	0.0000	0.0000	0.0000		web	127.0.0.1	sent	\N	mock-log-1793489301069784096	1	2026-10-31 19:29:21.069805-04	2026-10-31 19:28:21.069805-04	\N	\N	\N	2026-10-31 19:28:21.059-04	2026-10-31 19:28:21.070055-04
+4	3	4	1	1	+8801712345678	Test SMS via PostgreSQL and RabbitMQ	f	1	0.3000	0.3000	Grameenphone	0.0000	0.0000	0.0000		web	127.0.0.1	sent	\N	mock-log-1793489313053622484	1	2026-10-31 19:29:33.053675-04	2026-10-31 19:28:33.053675-04	\N	\N	\N	2026-10-31 19:26:39.60296-04	2026-10-31 19:28:33.054384-04
 \.
 
 
@@ -2732,6 +2930,9 @@ COPY smsagribd_sc.transactions (id, user_id, transactionable_type, transactionab
 3	3	message_batch	2	debit	0.3000	1000.0000	999.7000	SMS batch debit (1 messages)	2026-11-01 04:36:27-05	2026-11-01 04:36:27-05
 4	3	message	2	credit	0.3000	999.7000	1000.0000	Refund: SMS failed (Failed to decrypt gateway credentials: MAC mismatch: payload was tampered with or key is incorrect)	2026-11-01 04:36:27-05	2026-11-01 04:36:27-05
 5	3	message_batch	3	debit	0.3000	1000.0000	999.7000	SMS batch debit (1 messages)	2026-11-01 04:37:04-05	2026-11-01 04:37:04-05
+8	3	message_batch	4	debit	0.3000	999.7000	999.4000	SMS batch debit (1 messages)	2026-10-31 19:26:39.605265-04	2026-10-31 19:26:39.605265-04
+9	3	message_batch	5	debit	0.3000	999.4000	999.1000	SMS batch debit (1 messages)	2026-10-31 19:27:09.483251-04	2026-10-31 19:27:09.483251-04
+10	3	message_batch	6	debit	0.3000	999.1000	998.8000	SMS batch debit (1 messages)	2026-10-31 19:28:21.060882-04	2026-10-31 19:28:21.060882-04
 \.
 
 
@@ -2748,9 +2949,9 @@ COPY smsagribd_sc.user_operator_rates (id, user_id, operator_id, masking_price, 
 --
 
 COPY smsagribd_sc.users (id, sp_id, name, email, phone, password, balance, type, status, kyc_status, kyc_submitted_at, kyc_verified_at, kyc_resubmit_fields, kyc_rejected_reason, nid_number, front_nid, back_nid, live_photo, business_name, company_name, business_address, trade_license_number, trade_license_file, is_admin_created, created_by_admin, sms_auto_approved, api_access, last_login_at, remember_token, created_at, updated_at, deleted_at) FROM stdin;
-1	\N	System Administrator	admin@smsagri.softcents.com	01700000001	$2y$12$K04mGr.rzkP54RIau5uL2Oy9awMvHYrVooXe9P.YUdjwVmZcEq99i	10000.0000	superman	approved	verified	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	t	f	t	t	2026-10-31 18:39:41-04	\N	2026-10-31 18:31:41-04	2026-10-31 18:39:41-04	\N
 2	\N	Reseller Partner	sp@smsagri.softcents.com	01700000002	$2y$12$K04mGr.rzkP54RIau5uL2Oy9awMvHYrVooXe9P.YUdjwVmZcEq99i	5000.0000	sp	approved	verified	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	t	f	t	t	2026-10-31 18:35:47-04	\N	2026-10-31 18:31:41-04	2026-10-31 18:35:47-04	\N
-3	\N	Demo Customer	customer@smsagri.softcents.com	01700000003	$2y$12$K04mGr.rzkP54RIau5uL2Oy9awMvHYrVooXe9P.YUdjwVmZcEq99i	999.7000	customer	approved	verified	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	t	f	t	t	2026-10-31 18:48:23-04	\N	2026-10-31 18:31:41-04	2026-10-31 18:48:23-04	\N
+3	\N	Demo Customer	customer@smsagri.softcents.com	01700000003	$2y$12$K04mGr.rzkP54RIau5uL2Oy9awMvHYrVooXe9P.YUdjwVmZcEq99i	998.8000	customer	approved	verified	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	t	f	t	t	2026-10-31 19:28:21.009896-04	\N	2026-10-31 18:31:41-04	2026-10-31 19:28:21.059-04	\N
+1	\N	System Administrator	admin@smsagri.softcents.com	01700000001	$2y$12$K04mGr.rzkP54RIau5uL2Oy9awMvHYrVooXe9P.YUdjwVmZcEq99i	10000.0000	superman	approved	verified	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	t	f	t	t	2026-10-31 19:29:07.882185-04	\N	2026-10-31 18:31:41-04	2026-10-31 19:29:07.882185-04	\N
 \.
 
 
@@ -2773,7 +2974,7 @@ SELECT pg_catalog.setval('smsagribd_sc.access_tokens_id_seq', 1, true);
 -- Name: batches_id_seq; Type: SEQUENCE SET; Schema: smsagribd_sc; Owner: smsagribd_sc
 --
 
-SELECT pg_catalog.setval('smsagribd_sc.batches_id_seq', 3, true);
+SELECT pg_catalog.setval('smsagribd_sc.batches_id_seq', 6, true);
 
 
 --
@@ -2829,7 +3030,7 @@ SELECT pg_catalog.setval('smsagribd_sc.gateways_id_seq', 1, true);
 -- Name: groups_id_seq; Type: SEQUENCE SET; Schema: smsagribd_sc; Owner: smsagribd_sc
 --
 
-SELECT pg_catalog.setval('smsagribd_sc.groups_id_seq', 1, true);
+SELECT pg_catalog.setval('smsagribd_sc.groups_id_seq', 2, true);
 
 
 --
@@ -2864,7 +3065,7 @@ SELECT pg_catalog.setval('smsagribd_sc.kyc_role_permissions_id_seq', 1, true);
 -- Name: messages_id_seq; Type: SEQUENCE SET; Schema: smsagribd_sc; Owner: smsagribd_sc
 --
 
-SELECT pg_catalog.setval('smsagribd_sc.messages_id_seq', 3, true);
+SELECT pg_catalog.setval('smsagribd_sc.messages_id_seq', 6, true);
 
 
 --
@@ -2990,7 +3191,7 @@ SELECT pg_catalog.setval('smsagribd_sc.tickets_id_seq', 1, true);
 -- Name: transactions_id_seq; Type: SEQUENCE SET; Schema: smsagribd_sc; Owner: smsagribd_sc
 --
 
-SELECT pg_catalog.setval('smsagribd_sc.transactions_id_seq', 5, true);
+SELECT pg_catalog.setval('smsagribd_sc.transactions_id_seq', 10, true);
 
 
 --
@@ -4030,5 +4231,5 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES 
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 5338WqVReEXcDEbaykSSAMWX582SjYoi67I5KFqh6ZbUNqSAIgSTfdxUTJtonPu
+\unrestrict vqNHbYg29GCiGvUOHPMgFJSlT6CY3Syagh0cYhijNcTQ1ublUPmzNbGw2qg6Afq
 

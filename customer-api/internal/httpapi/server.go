@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -21,6 +22,7 @@ import (
 	"smswhiteinfo/customer-api/internal/dlr"
 	"smswhiteinfo/customer-api/internal/email"
 	"smswhiteinfo/customer-api/internal/kyc"
+	"smswhiteinfo/customer-api/internal/queue"
 	"smswhiteinfo/customer-api/internal/scheduler"
 	"smswhiteinfo/customer-api/internal/worker"
 )
@@ -36,6 +38,7 @@ type Server struct {
 	kycService     *kyc.KycService
 	mailer         *email.Mailer
 	loginLimiter   *LoginLimiter
+	rabbitClient   *queue.RabbitMQClient
 }
 
 func New(config config.Config, database *sql.DB) *Server {
@@ -57,6 +60,18 @@ func New(config config.Config, database *sql.DB) *Server {
 	dlrPoller, _ := dlr.NewDeliveryPoller(database, appKey)
 	masterSched := scheduler.NewMasterScheduler(database, batchProc)
 
+	var rabbitClient *queue.RabbitMQClient
+	if config.RabbitMQURL != "" {
+		rc, err := queue.NewRabbitMQClient(config.RabbitMQURL)
+		if err != nil {
+			log.Printf("[RABBITMQ] Warning: Failed to connect to RabbitMQ: %v", err)
+		} else {
+			log.Printf("[RABBITMQ] Successfully connected to RabbitMQ at %s", config.RabbitMQURL)
+			rabbitClient = rc
+			batchProc.SetPublisher(rc)
+		}
+	}
+
 	return &Server{
 		config:         config,
 		db:             database,
@@ -68,10 +83,21 @@ func New(config config.Config, database *sql.DB) *Server {
 		kycService:     kycSvc,
 		mailer:         mailer,
 		loginLimiter:   NewLoginLimiter(),
+		rabbitClient:   rabbitClient,
 	}
 }
 
 func (server *Server) StartBackground(ctx context.Context) {
+	if server.rabbitClient != nil && server.workerPool != nil {
+		err := server.rabbitClient.StartConsumer(ctx, func(msgID int64) error {
+			return server.workerPool.ProcessMessageByID(ctx, msgID)
+		})
+		if err != nil {
+			log.Printf("[RABBITMQ] Failed to start queue consumer: %v", err)
+		} else {
+			log.Println("[RABBITMQ] Worker queue consumer started listening on sms_dispatch_queue")
+		}
+	}
 	if server.workerPool != nil {
 		server.workerPool.Start(ctx)
 	}
@@ -84,6 +110,9 @@ func (server *Server) StartBackground(ctx context.Context) {
 }
 
 func (server *Server) StopBackground() {
+	if server.rabbitClient != nil {
+		server.rabbitClient.Close()
+	}
 	if server.workerPool != nil {
 		server.workerPool.Stop()
 	}

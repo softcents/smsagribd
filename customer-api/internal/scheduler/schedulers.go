@@ -236,7 +236,7 @@ func (s *MasterScheduler) runTelegramAlertCheck(ctx context.Context) {
 		return
 	}
 
-	// Threshold matching Horizon wait time (60 seconds)
+	// Threshold matching RabbitMQ queue wait time (60 seconds)
 	if oldestAgeSec.Int64 > 60 && (pendingCount+sendingCount) > 0 {
 		msg := fmt.Sprintf(
 			"<b>SMS-WhiteInfo: Long Queue Wait Detected</b>\n\n"+

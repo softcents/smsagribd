@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict uo8IirzLP0kbPJpJQaOsZRJAnp04YK341IAsGQIXWYyCvydCSKjLR9IVuHd3aqL
+\restrict R37nrIu0qgfQ5OMAnbJj5vogEayRzWKwMWr8BvpgOYwfueDxtrc3Jx5vMvs87u7
 
 -- Dumped from database version 18.0
 -- Dumped by pg_dump version 18.0
@@ -27,6 +27,110 @@ CREATE SCHEMA smsagribd_sc;
 
 
 ALTER SCHEMA smsagribd_sc OWNER TO smsagribd_sc;
+
+--
+-- Name: bigint_bool_eq(bigint, boolean); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.bigint_bool_eq(i bigint, b boolean) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    AS $$ SELECT (i != 0) = b; $$;
+
+
+ALTER FUNCTION smsagribd_sc.bigint_bool_eq(i bigint, b boolean) OWNER TO smsagribd_sc;
+
+--
+-- Name: bool_bigint_eq(boolean, bigint); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.bool_bigint_eq(b boolean, i bigint) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    AS $$ SELECT b = (i != 0); $$;
+
+
+ALTER FUNCTION smsagribd_sc.bool_bigint_eq(b boolean, i bigint) OWNER TO smsagribd_sc;
+
+--
+-- Name: bool_int_eq(boolean, integer); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.bool_int_eq(b boolean, i integer) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    AS $$ SELECT b = (i != 0); $$;
+
+
+ALTER FUNCTION smsagribd_sc.bool_int_eq(b boolean, i integer) OWNER TO smsagribd_sc;
+
+--
+-- Name: database(); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.database() RETURNS character varying
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+BEGIN
+    RETURN 'smsagribd_sc';
+END;
+$$;
+
+
+ALTER FUNCTION smsagribd_sc.database() OWNER TO smsagribd_sc;
+
+--
+-- Name: date_add(timestamp with time zone, interval); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.date_add(ts timestamp with time zone, iv interval) RETURNS timestamp with time zone
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+BEGIN
+    RETURN ts + iv;
+END;
+$$;
+
+
+ALTER FUNCTION smsagribd_sc.date_add(ts timestamp with time zone, iv interval) OWNER TO smsagribd_sc;
+
+--
+-- Name: date_sub(timestamp with time zone, integer); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.date_sub(ts timestamp with time zone, minutes integer) RETURNS timestamp with time zone
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+BEGIN
+    RETURN ts - (minutes || ' minutes')::interval;
+END;
+$$;
+
+
+ALTER FUNCTION smsagribd_sc.date_sub(ts timestamp with time zone, minutes integer) OWNER TO smsagribd_sc;
+
+--
+-- Name: date_sub(timestamp with time zone, interval); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.date_sub(ts timestamp with time zone, iv interval) RETURNS timestamp with time zone
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+BEGIN
+    RETURN ts - iv;
+END;
+$$;
+
+
+ALTER FUNCTION smsagribd_sc.date_sub(ts timestamp with time zone, iv interval) OWNER TO smsagribd_sc;
+
+--
+-- Name: int_bool_eq(integer, boolean); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.int_bool_eq(i integer, b boolean) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    AS $$ SELECT (i != 0) = b; $$;
+
+
+ALTER FUNCTION smsagribd_sc.int_bool_eq(i integer, b boolean) OWNER TO smsagribd_sc;
 
 --
 -- Name: on_update_current_timestamp_access_tokens(); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
@@ -619,6 +723,94 @@ $$;
 
 
 ALTER FUNCTION smsagribd_sc.on_update_current_timestamp_verification_otps() OWNER TO smsagribd_sc;
+
+--
+-- Name: sum_boolean_accum(bigint, boolean); Type: FUNCTION; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE FUNCTION smsagribd_sc.sum_boolean_accum(state bigint, b boolean) RETURNS bigint
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+BEGIN
+    IF b THEN
+        RETURN state + 1;
+    ELSE
+        RETURN state;
+    END IF;
+END;
+$$;
+
+
+ALTER FUNCTION smsagribd_sc.sum_boolean_accum(state bigint, b boolean) OWNER TO smsagribd_sc;
+
+--
+-- Name: sum(boolean); Type: AGGREGATE; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE AGGREGATE smsagribd_sc.sum(boolean) (
+    SFUNC = smsagribd_sc.sum_boolean_accum,
+    STYPE = bigint,
+    INITCOND = '0'
+);
+
+
+ALTER AGGREGATE smsagribd_sc.sum(boolean) OWNER TO smsagribd_sc;
+
+--
+-- Name: =; Type: OPERATOR; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE OPERATOR smsagribd_sc.= (
+    FUNCTION = smsagribd_sc.bool_int_eq,
+    LEFTARG = boolean,
+    RIGHTARG = integer,
+    COMMUTATOR = OPERATOR(smsagribd_sc.=)
+);
+
+
+ALTER OPERATOR smsagribd_sc.= (boolean, integer) OWNER TO smsagribd_sc;
+
+--
+-- Name: =; Type: OPERATOR; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE OPERATOR smsagribd_sc.= (
+    FUNCTION = smsagribd_sc.bool_bigint_eq,
+    LEFTARG = boolean,
+    RIGHTARG = bigint,
+    COMMUTATOR = OPERATOR(smsagribd_sc.=)
+);
+
+
+ALTER OPERATOR smsagribd_sc.= (boolean, bigint) OWNER TO smsagribd_sc;
+
+--
+-- Name: =; Type: OPERATOR; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE OPERATOR smsagribd_sc.= (
+    FUNCTION = smsagribd_sc.int_bool_eq,
+    LEFTARG = integer,
+    RIGHTARG = boolean,
+    COMMUTATOR = OPERATOR(smsagribd_sc.=)
+);
+
+
+ALTER OPERATOR smsagribd_sc.= (integer, boolean) OWNER TO smsagribd_sc;
+
+--
+-- Name: =; Type: OPERATOR; Schema: smsagribd_sc; Owner: smsagribd_sc
+--
+
+CREATE OPERATOR smsagribd_sc.= (
+    FUNCTION = smsagribd_sc.bigint_bool_eq,
+    LEFTARG = bigint,
+    RIGHTARG = boolean,
+    COMMUTATOR = OPERATOR(smsagribd_sc.=)
+);
+
+
+ALTER OPERATOR smsagribd_sc.= (bigint, boolean) OWNER TO smsagribd_sc;
 
 SET default_tablespace = '';
 
@@ -3426,5 +3618,5 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES 
 -- PostgreSQL database dump complete
 --
 
-\unrestrict uo8IirzLP0kbPJpJQaOsZRJAnp04YK341IAsGQIXWYyCvydCSKjLR9IVuHd3aqL
+\unrestrict R37nrIu0qgfQ5OMAnbJj5vogEayRzWKwMWr8BvpgOYwfueDxtrc3Jx5vMvs87u7
 

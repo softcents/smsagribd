@@ -119,7 +119,7 @@ func (server *Server) login(context fiber.Ctx) error {
 		// Check if created by admin (has no password set originally — we just check sp_id or is_admin_created flag)
 		// For now, block pending + pending kyc
 		var isAdminCreated bool
-		_ = server.db.QueryRow("SELECT COALESCE(is_admin_created, 0) FROM users WHERE id = ?", u.ID).Scan(&isAdminCreated)
+		_ = server.db.QueryRow("SELECT COALESCE(is_admin_created, false) FROM users WHERE id = ?", u.ID).Scan(&isAdminCreated)
 		if !isAdminCreated {
 			return context.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
 				"errors": fiber.Map{"email": []string{"Your account status is under review by the admin. Please contact the administrator for further assistance."}},

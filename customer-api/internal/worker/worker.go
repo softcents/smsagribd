@@ -198,7 +198,7 @@ func (p *SendWorkerPool) processNextBatch(ctx context.Context) {
 	q := fmt.Sprintf(`
 		SELECT m.id, m.user_id, m.`+"`to`"+`, m.body, m.is_unicode, m.cost, m.gateway_id, m.sender_id,
 		       s.sender_id, s.type, s.gateway_id,
-		       COALESCE(g.id, sg.id), COALESCE(g.driver, sg.driver), COALESCE(g.credentials, sg.credentials), COALESCE(g.requests_per_second, sg.requests_per_second, 10), COALESCE(g.is_enabled, sg.is_enabled, 0)
+		       COALESCE(g.id, sg.id), COALESCE(g.driver, sg.driver), COALESCE(g.credentials, sg.credentials), COALESCE(g.requests_per_second, sg.requests_per_second, 10), COALESCE(g.is_enabled, sg.is_enabled, false)
 		FROM messages m
 		LEFT JOIN senders s ON s.id = m.sender_id
 		LEFT JOIN gateways g ON g.id = m.gateway_id
@@ -310,6 +310,68 @@ func (p *SendWorkerPool) sendSingleMessage(ctx context.Context, mid int64, to, b
 		SET gateway_id = ?, status = 'sent', sent_at = ?, gateway_message_id = ?, poll_attempt = 1, next_poll_at = ?, updated_at = ?
 		WHERE id = ? AND status = 'sending'
 	`, gwID, now, gwMsgID, nextPoll, now, mid)
+}
+
+// ProcessMessageByID claims a single message and dispatches it via the worker pool.
+func (p *SendWorkerPool) ProcessMessageByID(ctx context.Context, mid int64) error {
+	res, err := p.db.ExecContext(ctx, `
+		UPDATE messages 
+		SET status = 'sending', updated_at = NOW() 
+		WHERE id = ? AND status = 'pending'
+	`, mid)
+	if err != nil {
+		return err
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil || affected == 0 {
+		return nil
+	}
+
+	q := `
+		SELECT m.id, m.user_id, m.`+"`to`"+`, m.body, m.is_unicode, m.cost, m.gateway_id, m.sender_id,
+		       s.sender_id, s.type, s.gateway_id,
+		       COALESCE(g.id, sg.id), COALESCE(g.driver, sg.driver), COALESCE(g.credentials, sg.credentials), COALESCE(g.requests_per_second, sg.requests_per_second, 10), COALESCE(g.is_enabled, sg.is_enabled, false)
+		FROM messages m
+		LEFT JOIN senders s ON s.id = m.sender_id
+		LEFT JOIN gateways g ON g.id = m.gateway_id
+		LEFT JOIN gateways sg ON sg.id = s.gateway_id
+		WHERE m.id = ? AND m.status = 'sending'
+	`
+
+	var uid int64
+	var to, body string
+	var isUnicode bool
+	var cost float64
+	var mGwID, sID sql.NullInt64
+	var senderLabel, senderType sql.NullString
+	var sGwID sql.NullInt64
+	var gwID sql.NullInt64
+	var gwDriver, gwCreds sql.NullString
+	var gwRps sql.NullInt64
+	var gwEnabled sql.NullBool
+
+	err = p.db.QueryRowContext(ctx, q, mid).Scan(
+		&mid, &uid, &to, &body, &isUnicode, &cost, &mGwID, &sID,
+		&senderLabel, &senderType, &sGwID,
+		&gwID, &gwDriver, &gwCreds, &gwRps, &gwEnabled,
+	)
+	if err != nil {
+		return err
+	}
+
+	p.inFlightMu.Lock()
+	p.inFlight++
+	p.inFlightMu.Unlock()
+
+	defer func() {
+		p.inFlightMu.Lock()
+		p.inFlight--
+		p.inFlightMu.Unlock()
+	}()
+
+	p.sendSingleMessage(ctx, mid, to, body, isUnicode, senderLabel.String, gwID.Int64, gwDriver.String, gwCreds.String, int(gwRps.Int64), gwEnabled.Bool)
+	return nil
 }
 
 // ProcessNextBatchForTest exposes processNextBatch for integration tests.

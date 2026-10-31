@@ -127,7 +127,7 @@ func (server *Server) purgeQueue() (int64, error) {
 	return messageCount + batchCount, nil
 }
 
-// queueMonitor replaces Horizon/Telescope queue monitoring dashboards.
+// queueMonitor monitors RabbitMQ dispatch queues.
 func (server *Server) queueMonitor(context fiber.Ctx) error {
 	var pending, sending, sent, failed, stale int
 	var oldestAgeSec sql.NullInt64

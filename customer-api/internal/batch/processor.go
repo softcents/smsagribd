@@ -35,9 +35,14 @@ type RecipientItem struct {
 	Raw    map[string]any
 }
 
+type MessagePublisher interface {
+	PublishMessage(ctx context.Context, msgID int64) error
+}
+
 type BatchProcessor struct {
 	db          *sql.DB
 	storageRoot string
+	publisher   MessagePublisher
 }
 
 func NewBatchProcessor(db *sql.DB, storageRoot string) *BatchProcessor {
@@ -48,6 +53,10 @@ func NewBatchProcessor(db *sql.DB, storageRoot string) *BatchProcessor {
 		db:          db,
 		storageRoot: storageRoot,
 	}
+}
+
+func (p *BatchProcessor) SetPublisher(pub MessagePublisher) {
+	p.publisher = pub
 }
 
 // ProcessBatch runs the full parsing, validation, chunking, pricing, and message insertion for a batch.
@@ -244,6 +253,18 @@ func (p *BatchProcessor) ProcessBatch(ctx context.Context, batchID int64) error 
 
 		if err := tx.Commit(); err != nil {
 			return err
+		}
+
+		if p.publisher != nil {
+			if qRows, qErr := p.db.QueryContext(ctx, "SELECT id FROM messages WHERE batch_id = ? AND status = 'pending' ORDER BY id ASC", batchID); qErr == nil {
+				for qRows.Next() {
+					var mid int64
+					if sErr := qRows.Scan(&mid); sErr == nil {
+						_ = p.publisher.PublishMessage(ctx, mid)
+					}
+				}
+				qRows.Close()
+			}
 		}
 
 		buffer = buffer[:0]

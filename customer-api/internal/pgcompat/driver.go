@@ -11,7 +11,17 @@ import (
 	"github.com/lib/pq"
 )
 
+var (
+	intervalNumRegex   = regexp.MustCompile(`(?i)\bINTERVAL\s+(\d+)\s+([a-zA-Z]+)\b`)
+	intervalParamRegex = regexp.MustCompile(`(?i)\bINTERVAL\s+\?\s+([a-zA-Z]+)\b`)
+	timestampDiffRegex = regexp.MustCompile(`(?i)\bTIMESTAMPDIFF\s*\(\s*SECOND\s*,\s*([^,]+?)\s*,\s*([^)]+?)\s*\)`)
+)
+
 func Rebind(q string) string {
+	q = timestampDiffRegex.ReplaceAllString(q, "EXTRACT(EPOCH FROM (($2) - ($1)))::bigint")
+	q = intervalParamRegex.ReplaceAllString(q, "(? * INTERVAL '1 $1')")
+	q = intervalNumRegex.ReplaceAllString(q, "INTERVAL '$1 $2'")
+
 	var b strings.Builder
 	idx := 1
 	inQuote := false
@@ -21,7 +31,7 @@ func Rebind(q string) string {
 			inQuote = !inQuote
 			b.WriteByte(ch)
 		} else if ch == '`' && !inQuote {
-			continue
+			b.WriteByte('"')
 		} else if ch == '?' && !inQuote {
 			b.WriteString(fmt.Sprintf("$%d", idx))
 			idx++
