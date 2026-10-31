@@ -30,7 +30,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	database, err := sql.Open("mysql", applicationConfig.Database.FormatDSN())
+	database, err := sql.Open(applicationConfig.DBDriver, applicationConfig.DBDSN)
 	if err != nil {
 		log.Fatal(err)
 	}

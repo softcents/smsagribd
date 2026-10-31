@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
+	_ "smswhiteinfo/customer-api/internal/pgcompat"
 	"github.com/joho/godotenv"
 	"smswhiteinfo/customer-api/internal/crypto"
 )
@@ -269,9 +270,20 @@ func Run() int {
 	password := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_DATABASE")
 
+	dbConn := strings.ToLower(os.Getenv("DB_CONNECTION"))
+	driverName := "mysql"
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", user, password, host, port, dbName)
 
-	db, err := sql.Open("mysql", dsn)
+	if dbConn == "pgsql" || dbConn == "postgres" || dbConn == "postgresql" {
+		driverName = "pg_compat"
+		if port == "" || port == "3306" {
+			port = "5432"
+		}
+		dsn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s,public",
+			host, port, user, password, dbName, dbName)
+	}
+
+	db, err := sql.Open(driverName, dsn)
 	if err != nil {
 		fmt.Printf("  [FAIL] DB_CONNECTION: Cannot open DB: %v\n", err)
 		return 1

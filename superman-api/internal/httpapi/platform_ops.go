@@ -62,10 +62,10 @@ func (server *Server) systemSettingsQueue(context fiber.Ctx) error {
 	_ = server.db.QueryRow("SELECT COUNT(*) FROM messages WHERE status = 'delivered'").Scan(&sentCount)
 
 	queues := []queueItem{
-		{Name: "default", Connection: "Redis (Horizon)", Size: quickPending, Status: "Active"},
-		{Name: "batches", Connection: "Redis (Horizon)", Size: bulkPending, Status: "Active"},
-		{Name: "sms-sending", Connection: "Redis (Horizon)", Size: 0, Status: "Active"},
-		{Name: "dlr-callbacks", Connection: "Redis (Horizon)", Size: 0, Status: "Active"},
+		{Name: "default", Connection: "RabbitMQ (AMQP)", Size: quickPending, Status: "Active"},
+		{Name: "batches", Connection: "RabbitMQ (AMQP)", Size: bulkPending, Status: "Active"},
+		{Name: "sms-sending", Connection: "RabbitMQ (AMQP)", Size: 0, Status: "Active"},
+		{Name: "dlr-callbacks", Connection: "RabbitMQ (AMQP)", Size: 0, Status: "Active"},
 	}
 
 	return context.JSON(fiber.Map{

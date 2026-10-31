@@ -3,13 +3,14 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
+	_ "smswhiteinfo/sp-api/internal/pgcompat"
 )
 
-// Config holds all runtime configuration for the SP API.
 type Config struct {
 	Address          string
 	Environment      string
@@ -19,6 +20,8 @@ type Config struct {
 	RememberTokenTTL time.Duration
 	CachePrefix      string
 	Database         mysql.Config
+	DBDriver         string
+	DBDSN            string
 }
 
 func Load() (Config, error) {
@@ -57,6 +60,20 @@ func Load() (Config, error) {
 	databaseConfig.Loc = time.FixedZone("Asia/Dhaka", 6*60*60)
 	databaseConfig.Params = map[string]string{"charset": "utf8mb4"}
 
+	dbConn := strings.ToLower(value("DB_CONNECTION", "mysql"))
+	dbDriver := "mysql"
+	var dbDSN string
+
+	if dbConn == "pgsql" || dbConn == "postgres" || dbConn == "postgresql" {
+		dbDriver = "pg_compat"
+		dbPort := value("DB_PORT", "5432")
+		dbDSN = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s,public",
+			required("DB_HOST"), dbPort, required("DB_USERNAME"), os.Getenv("DB_PASSWORD"), required("DB_DATABASE"), required("DB_DATABASE"))
+	} else {
+		dbDriver = "mysql"
+		dbDSN = databaseConfig.FormatDSN()
+	}
+
 	return Config{
 		Address:          value("SP_API_ADDR", "127.0.0.1:8083"),
 		Environment:      value("SP_API_ENV", "development"),
@@ -66,6 +83,8 @@ func Load() (Config, error) {
 		RememberTokenTTL: rememberTokenTTL,
 		CachePrefix:      value("CACHE_PREFIX", ""),
 		Database:         *databaseConfig,
+		DBDriver:         dbDriver,
+		DBDSN:            dbDSN,
 	}, nil
 }
 

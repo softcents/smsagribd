@@ -41,7 +41,7 @@
 		<div>
 			<h1 class="text-xl font-bold text-gray-900 dark:text-white">Queue & Worker Management</h1>
 			<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-				Real-time worker concurrency, dispatch backpressure, and Redis/Horizon pipeline buffers.
+				Real-time worker concurrency, dispatch backpressure, and RabbitMQ message broker pipeline buffers.
 			</p>
 		</div>
 		<div class="flex items-center gap-3">
@@ -75,7 +75,7 @@
 		</div>
 		<div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5 shadow-xs">
 			<span class="text-xs font-medium text-blue-600 uppercase tracking-wider">Queue Driver</span>
-			<p class="text-2xl font-bold text-blue-600 mt-1">Redis + Horizon</p>
+			<p class="text-2xl font-bold text-blue-600 mt-1">RabbitMQ (AMQP)</p>
 			<span class="text-[11px] text-gray-400 mt-1 block">Asynchronous non-blocking</span>
 		</div>
 	</div>

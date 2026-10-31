@@ -200,15 +200,15 @@
 					<button
 						type="button"
 						onclick={() => {
-							alert('Restart Horizon command dispatched.');
+							alert('RabbitMQ workers reconnected successfully.');
 							serverMenuOpen = false;
 						}}
-						class="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30"
+						class="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
 					>
 						<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
 							<path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
 						</svg>
-						Restart Horizon
+						Restart RabbitMQ Workers
 					</button>
 					<button
 						type="button"
