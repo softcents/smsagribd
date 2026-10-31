@@ -1,0 +1,2 @@
+const g=`@£$¥èéùìòÇ
+Øø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà`,u="\f^{}\\[~]|€";function m(c){if(!c)return{length:0,encoding:"GSM-7",parts:0,remaining:160,perPartTotal:160};let n=!1,o=0;for(const r of[...c])if(u.includes(r))o+=2;else if(g.includes(r))o+=1;else{n=!0;break}const a=n?"Unicode":"GSM-7",t=n?[...c].length:o,s=n?70:160,l=n?67:153;let e,i;t===0?(e=0,i=s):t<=s?(e=1,i=s):(e=Math.ceil(t/l),i=l);const f=e>0?e*i-t:s;return{length:t,encoding:a,parts:e,remaining:f,perPartTotal:i}}export{m as c};

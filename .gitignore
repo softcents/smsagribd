@@ -1,0 +1,60 @@
+# ------------------------------------------------------------
+# OS / System files
+# ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ------------------------------------------------------------
+# Logs
+# ------------------------------------------------------------
+*.log
+/storage/logs/*.log
+/www/wwwlogs/
+
+# ------------------------------------------------------------
+# Environment & Sensitive files
+# ------------------------------------------------------------
+.env
+.env.backup*
+.env.production
+/auth.json
+/storage/*.key
+
+# ------------------------------------------------------------
+# Compiled Go Binaries
+# ------------------------------------------------------------
+/smsagri
+/customer-api/customer-api
+/customer-api/selfcheck
+/superman-api/superman-api
+/sp-api/sp-api
+*.exe
+
+# ------------------------------------------------------------
+# Dependencies
+# ------------------------------------------------------------
+/node_modules
+/vendor
+/frontend/node_modules
+
+# ------------------------------------------------------------
+# IDE / Editor files
+# ------------------------------------------------------------
+/.idea
+/.vscode
+/.zed
+.phpactor.json
+_ide_helper.php
+
+# ------------------------------------------------------------
+# Runtime Storage Cache
+# ------------------------------------------------------------
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore

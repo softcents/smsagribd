@@ -1,0 +1,33 @@
+[Unit]
+Description=SMS WhiteInfo – SP (Reseller) API (Port 8083)
+Documentation=https://sms.whiteinfobd.com
+After=network.target mariadb.service
+Requires=mariadb.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/sms-panel/sp-api
+EnvironmentFile=/var/www/sms-panel/sp-api/.env
+ExecStart=/var/www/sms-panel/sp-api/sp-api
+ExecStop=/bin/kill -s SIGTERM $MAINPID
+
+TimeoutStopSec=15
+KillMode=mixed
+KillSignal=SIGTERM
+
+Restart=always
+RestartSec=5s
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/var/www/sms-panel/storage
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sms-sp-api
+
+[Install]
+WantedBy=multi-user.target

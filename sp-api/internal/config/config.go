@@ -1,0 +1,91 @@
+package config
+
+import (
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
+)
+
+// Config holds all runtime configuration for the SP API.
+type Config struct {
+	Address          string
+	Environment      string
+	JWTSecret        []byte
+	FrontendOrigin   string
+	TokenTTL         time.Duration
+	RememberTokenTTL time.Duration
+	CachePrefix      string
+	Database         mysql.Config
+}
+
+func Load() (Config, error) {
+	_ = godotenv.Load("sp-api/.env")
+	_ = godotenv.Load(".env")
+	_ = godotenv.Load("../.env")
+
+	tokenTTL, err := duration("SP_API_TOKEN_TTL", "8h")
+	if err != nil {
+		return Config{}, err
+	}
+
+	rememberTokenTTL, err := duration("SP_API_REMEMBER_TOKEN_TTL", "720h")
+	if err != nil {
+		return Config{}, err
+	}
+
+	secret := os.Getenv("SP_API_JWT_SECRET")
+	if len(secret) < 32 {
+		return Config{}, fmt.Errorf("required environment variable SP_API_JWT_SECRET is missing or under 32 characters")
+	}
+
+	for _, reqKey := range []string{"DB_HOST", "DB_DATABASE", "DB_USERNAME"} {
+		if os.Getenv(reqKey) == "" {
+			return Config{}, fmt.Errorf("required environment variable %s is missing", reqKey)
+		}
+	}
+
+	databaseConfig := mysql.NewConfig()
+	databaseConfig.User = required("DB_USERNAME")
+	databaseConfig.Passwd = os.Getenv("DB_PASSWORD")
+	databaseConfig.Net = "tcp"
+	databaseConfig.Addr = fmt.Sprintf("%s:%s", required("DB_HOST"), value("DB_PORT", "3306"))
+	databaseConfig.DBName = required("DB_DATABASE")
+	databaseConfig.ParseTime = true
+	databaseConfig.Loc = time.FixedZone("Asia/Dhaka", 6*60*60)
+	databaseConfig.Params = map[string]string{"charset": "utf8mb4"}
+
+	return Config{
+		Address:          value("SP_API_ADDR", "127.0.0.1:8083"),
+		Environment:      value("SP_API_ENV", "development"),
+		JWTSecret:        []byte(secret),
+		FrontendOrigin:   value("SP_API_FRONTEND_ORIGIN", "http://localhost:5173"),
+		TokenTTL:         tokenTTL,
+		RememberTokenTTL: rememberTokenTTL,
+		CachePrefix:      value("CACHE_PREFIX", ""),
+		Database:         *databaseConfig,
+	}, nil
+}
+
+func duration(key string, fallback string) (time.Duration, error) {
+	parsed, err := time.ParseDuration(value(key, fallback))
+	if err != nil {
+		return 0, fmt.Errorf("invalid %s: %w", key, err)
+	}
+
+	return parsed, nil
+}
+
+func required(key string) string {
+	return os.Getenv(key)
+}
+
+func value(key string, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+
+	return fallback
+}
