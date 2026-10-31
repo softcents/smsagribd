@@ -1,11 +1,13 @@
 # ------------------------------------------------------------
-# OS / System files
+# OS / Editor temporary files
 # ------------------------------------------------------------
 .DS_Store
 Thumbs.db
 *.swp
 *.swo
 *~
+.idea/
+.vscode/
 
 # ------------------------------------------------------------
 # Logs
@@ -15,7 +17,7 @@ Thumbs.db
 /www/wwwlogs/
 
 # ------------------------------------------------------------
-# Environment & Sensitive files
+# Secrets & Environment
 # ------------------------------------------------------------
 .env
 .env.backup*
@@ -34,27 +36,7 @@ Thumbs.db
 *.exe
 
 # ------------------------------------------------------------
-# Dependencies
+# Frontend Dependencies
 # ------------------------------------------------------------
-/node_modules
-/vendor
-/frontend/node_modules
-
-# ------------------------------------------------------------
-# IDE / Editor files
-# ------------------------------------------------------------
-/.idea
-/.vscode
-/.zed
-.phpactor.json
-_ide_helper.php
-
-# ------------------------------------------------------------
-# Runtime Storage Cache
-# ------------------------------------------------------------
-/storage/framework/cache/*
-!/storage/framework/cache/.gitignore
-/storage/framework/sessions/*
-!/storage/framework/sessions/.gitignore
-/storage/framework/views/*
-!/storage/framework/views/.gitignore
+/frontend/node_modules/
+/node_modules/

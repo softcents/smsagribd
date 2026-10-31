@@ -1,58 +1,69 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SMS Aggregator Panel
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+High-performance Telecom SMS Gateway Aggregator and Management Platform built with **Go (Golang)** microservices and a modern **SvelteKit 5** single-page application.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Architecture & Technology Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Architecture**: Microservices orchestrated via single master process (`smsagri`)
+- **Backend**: Go 1.24+ using Go Fiber v3
+  - **Superman Admin API**: `superman-api/` (Port `:8081`, prefix `/api/v1/superman`)
+  - **Customer Portal & Developer API**: `customer-api/` (Port `:8082`, prefixes `/api/v1/customer`, `/api/v1/`)
+  - **SP (Reseller) API**: `sp-api/` (Port `:8083`, prefix `/api/v1/sp`)
+  - **Master Orchestrator / Status Monitor**: `main.go` -> `smsagri` (Port `:8080`)
+- **Frontend**: SvelteKit 2 + Svelte 5 (Runes mode) + Tailwind CSS v4 (`frontend/`)
+- **Database**: MariaDB / MySQL 10.5+ (`database/schema.sql` and `database/seeds.sql`)
+- **Web Server / Reverse Proxy**: Nginx + SSL
+- **Process Manager**: aaPanel Go Project Manager / Systemd
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Directory Structure
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```text
+├── build.sh                  # One-click build script for all Go binaries
+├── git-auto-push.sh          # Automated Git push & sync script
+├── git-auto-pull.sh          # Automated Git pull, rebuild, and reload script
+├── main.go                   # Master Orchestrator daemon source
+├── customer-api/             # Customer SMS Engine, Queues, Billing & API
+├── superman-api/             # Administrator & Platform Operations API
+├── sp-api/                   # Reseller / SP Management API
+├── frontend/                 # SvelteKit 5 Source & Static SPA Build
+├── database/                 # MariaDB 39-table schema and initial seeds
+│   ├── schema.sql
+│   ├── seeds.sql
+│   └── setup.sh
+├── deploy/                   # Deployment guides and env templates
+├── public/                   # Public static branding assets & storage
+└── storage/                  # KYC documents, uploads, and batch CSVs
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## Quick Start & Setup
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 1. Database Setup
+```bash
+./database/setup.sh
+```
 
-## Code of Conduct
+### 2. Build Go Microservices
+```bash
+./build.sh
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 3. Run Microservices
+```bash
+./smsagri
+```
 
-## Security Vulnerabilities
+### 4. Verification Check
+```bash
+./customer-api/selfcheck
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
 ## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Proprietary software © Softcents. All rights reserved.

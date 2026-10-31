@@ -8,12 +8,12 @@ echo "[1/4] Building Master Orchestrator (smsagri)..."
 go build -o smsagri main.go
 
 echo "[2/4] Building customer-api..."
-(cd customer-api && go build -o customer-api .)
+(cd customer-api && go build -o customer-api ./cmd/server)
 
 echo "[3/4] Building superman-api..."
-(cd superman-api && go build -o superman-api .)
+(cd superman-api && go build -o superman-api ./cmd/server)
 
 echo "[4/4] Building sp-api..."
-(cd sp-api && go build -o sp-api .)
+(cd sp-api && go build -o sp-api ./cmd/server)
 
 echo "All binaries built successfully!"
