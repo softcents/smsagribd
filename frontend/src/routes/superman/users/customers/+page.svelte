@@ -314,8 +314,50 @@
 		}
 	}
 
+	async function submitCreate() {
+		if (!editCustomerData.name.trim() || !editCustomerData.email.trim()) {
+			window.alert('Full name and email are required.');
+			return;
+		}
+		let password: string | null = window.prompt(
+			'Set a login password for this customer (minimum 8 characters).\nLeave empty to generate one automatically.',
+			''
+		);
+		if (password === null) return;
+		password = password.trim();
+		if (!password) {
+			const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+			const bytes = crypto.getRandomValues(new Uint8Array(12));
+			password = Array.from(bytes, (x) => chars[x % chars.length]).join('');
+		} else if (password.length < 8) {
+			window.alert('Password must be at least 8 characters.');
+			return;
+		}
+		editSubmitting = true;
+		try {
+			await supermanApi.post('/api/v1/superman/customers', {
+				name: editCustomerData.name,
+				email: editCustomerData.email,
+				phone: editCustomerData.phone,
+				business_name: editCustomerData.business_name,
+				status: editCustomerData.status,
+				password,
+				api_access: editCustomerData.api_access,
+				sms_auto_approved: editCustomerData.sms_auto_approved,
+				tariff_plan_id: editCustomerData.tariff_plan_id > 0 ? editCustomerData.tariff_plan_id : null
+			});
+			editModalOpen = false;
+			window.prompt('Customer created. Login email: ' + editCustomerData.email + ' - copy this password now, it will not be shown again:', password);
+			void loadCustomers();
+		} catch (error: unknown) {
+			window.alert(error instanceof Error ? error.message : 'Unable to create customer.');
+		} finally {
+			editSubmitting = false;
+		}
+	}
+
 	async function submitEdit() {
-		if (!editCustomerData.id) return;
+		if (!editCustomerData.id) { await submitCreate(); return; }
 		editSubmitting = true;
 		try {
 			await supermanApi.put(`/api/v1/superman/customers/${editCustomerData.id}`, {
@@ -404,9 +446,19 @@
 		}
 	}
 
-	function handleImpersonate(c: Customer) {
+	async function handleImpersonate(c: Customer) {
 		activeMenuId = null;
-		window.alert(`Simulating Login As ${c.name} (${c.email}). Redirecting to customer portal session...`);
+		try {
+			const res: any = await supermanApi.post(`/api/v1/superman/customers/${c.id}/impersonate`, {});
+			const token = res?.data?.token ?? res?.token;
+			if (!token) throw new Error('No customer session token was returned.');
+			localStorage.removeItem('sms_customer_access_token');
+			sessionStorage.setItem('sms_customer_session_token', token);
+			sessionStorage.setItem('sms_impersonation', JSON.stringify({ portal: 'customer', name: c.name, email: c.email, returnTo: '/superman/users/customers' }));
+			window.location.assign('/customer');
+		} catch (error: unknown) {
+			window.alert(error instanceof Error ? error.message : 'Unable to log in as this customer.');
+		}
 	}
 
 	function closeMenu() {

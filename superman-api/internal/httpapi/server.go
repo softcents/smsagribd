@@ -114,6 +114,8 @@ func (server *Server) App() *fiber.App {
 	protected.Get("/sms-logs", server.smsLogs)
 	protected.Get("/queue-monitor", server.queueMonitor)
 	protected.Post("/queue-actions/:action", server.queueAction)
+	protected.Post("/customers", server.createCustomer)
+	protected.Post("/customers/:id/impersonate", server.impersonateCustomer)
 	protected.Post("/customers/:id/deposit", server.depositCustomer)
 	protected.Put("/customers/:id/status", server.updateCustomerStatus)
 	protected.Get("/customers/:id", server.customerDetail)

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import SpLayout from '$lib/components/sp/SpLayout.svelte';
-	import ImpersonationBanner from '$lib/components/ImpersonationBanner.svelte';
 
 	let { children } = $props();
 
@@ -14,5 +13,4 @@
 	<SpLayout>
 		{@render children()}
 	</SpLayout>
-	<ImpersonationBanner />
 {/if}

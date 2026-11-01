@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 
 	const MARKER = 'sms_impersonation';
 
 	let info = $state<{ portal: string; name?: string; email?: string; returnTo?: string } | null>(null);
 	let leaving = $state(false);
+	let visible = $derived(info !== null && !$page.url.pathname.startsWith('/superman'));
 
 	onMount(() => {
 		try {
@@ -25,9 +27,23 @@
 				try {
 					await spApi.post('/api/v1/sp/auth/logout');
 				} catch {
-					// Token revoke is best-effort; it is cleared locally either way.
+					// best effort
 				}
 				spApi.clearToken();
+			} else if (info.portal === 'customer') {
+				const token = sessionStorage.getItem('sms_customer_session_token');
+				if (token) {
+					try {
+						await fetch('/api/v1/customer/auth/logout', {
+							method: 'POST',
+							headers: { Accept: 'application/json', Authorization: `Bearer ${token}` }
+						});
+					} catch {
+						// best effort
+					}
+				}
+				sessionStorage.removeItem('sms_customer_session_token');
+				localStorage.removeItem('sms_customer_access_token');
 			}
 		} finally {
 			sessionStorage.removeItem(MARKER);
@@ -36,7 +52,7 @@
 	}
 </script>
 
-{#if info}
+{#if visible && info}
 	<div
 		class="fixed bottom-4 left-1/2 z-[9999] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-3 rounded-full border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 shadow-lg"
 	>
