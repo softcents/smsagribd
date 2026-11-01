@@ -70,9 +70,9 @@ func (server *Server) customers(context fiber.Ctx) error {
 	}
 
 	if creationSource == "1" {
-		where += " AND u.created_by_admin = 1"
+		where += " AND u.created_by_admin = true"
 	} else if creationSource == "0" {
-		where += " AND (u.created_by_admin = 0 OR u.created_by_admin IS NULL)"
+		where += " AND (u.created_by_admin = false OR u.created_by_admin IS NULL)"
 	}
 
 	if kycStatus != "" && kycStatus != "all" {
@@ -159,8 +159,8 @@ func (server *Server) customers(context fiber.Ctx) error {
 	total := summary.TotalCustomers
 	itemsArguments := append(arguments, perPage, (page-1)*perPage)
 	rows, err := server.db.Query(`
-		SELECT u.id, u.name, u.email, u.phone, u.business_name, u.balance, u.kyc_status, u.status,
-			u.nid_number, u.last_login_at, COALESCE(u.created_by_admin, 0),
+		SELECT u.id, u.name, u.email, COALESCE(u.phone, ''), u.business_name, COALESCE(u.balance, 0), u.kyc_status, u.status,
+			u.nid_number, u.last_login_at, COALESCE(u.created_by_admin, false),
 			(SELECT tp.name FROM tariff_plan_assignments tpa JOIN tariff_plans tp ON tp.id = tpa.tariff_plan_id WHERE tpa.user_id = u.id AND tpa.status = 'active' LIMIT 1) AS tariff_name,
 			u.created_at
 		FROM users u `+where+`
@@ -177,7 +177,7 @@ func (server *Server) customers(context fiber.Ctx) error {
 		var item customer
 		var nidNumber, tariffName sql.NullString
 		var lastLoginAt sql.NullTime
-		var createdByAdmin int
+		var createdByAdmin bool
 		var createdAt time.Time
 
 		if err := rows.Scan(
@@ -188,7 +188,7 @@ func (server *Server) customers(context fiber.Ctx) error {
 		}
 
 		item.CreatedAt = createdAt.Format(time.RFC3339)
-		item.CreatedByAdmin = createdByAdmin == 1
+		item.CreatedByAdmin = createdByAdmin
 		if nidNumber.Valid && nidNumber.String != "" {
 			val := nidNumber.String
 			item.NIDNumber = &val

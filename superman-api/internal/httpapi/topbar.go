@@ -18,9 +18,9 @@ func (server *Server) topbarStats(context fiber.Ctx) error {
 	err := server.db.QueryRow(`
 		SELECT
 			(SELECT COUNT(*) FROM users WHERE type = 'customer' AND kyc_status = 'under_review' AND deleted_at IS NULL),
-			(SELECT COALESCE(SUM(amount), 0) FROM deposits WHERE DATE(created_at) = CURDATE() AND status = 'completed' AND deleted_at IS NULL),
-			(SELECT COUNT(*) FROM messages WHERE DATE(created_at) = CURDATE() AND status IN ('sent', 'delivered')),
-			(SELECT COALESCE(SUM(cost - (operator_cost + primary_dipping_cost)), 0) FROM messages WHERE DATE(created_at) = CURDATE()),
+			(SELECT COALESCE(SUM(amount), 0) FROM deposits WHERE DATE(created_at) = CURRENT_DATE AND status = 'completed' AND deleted_at IS NULL),
+			(SELECT COUNT(*) FROM messages WHERE DATE(created_at) = CURRENT_DATE AND status IN ('sent', 'delivered')),
+			(SELECT COALESCE(SUM(cost - (operator_cost + primary_dipping_cost)), 0) FROM messages WHERE DATE(created_at) = CURRENT_DATE),
 			(SELECT COUNT(*) FROM users WHERE type = 'customer' AND balance < 100 AND deleted_at IS NULL),
 			(SELECT COUNT(*) FROM ip_whitelist_requests WHERE status = 'pending')
 	`).Scan(&kycPending, &deposits, &smsSent, &profit, &lowBalance, &ipWhitelist)
