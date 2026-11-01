@@ -258,10 +258,21 @@
 		}
 	}
 
-	function handleImpersonate(sp: SPReseller) {
-		activeMenuId = null;
-		window.alert(`Simulating Login As Reseller ${sp.name} (${sp.email})...`);
-	}
+	async function handleImpersonate(sp: SPReseller) {
+                activeMenuId = null;
+                try {
+                        const res: any = await supermanApi.post(`/api/v1/superman/sps/${sp.id}/impersonate`, {});
+                        const token = res?.data?.token ?? res?.token;
+                        if (!token) throw new Error('No reseller session token was returned.');
+                        const { spApi } = await import('$lib/sp-api.js');
+                        spApi.clearToken();
+                        spApi.setToken(token, false);
+                        sessionStorage.setItem('sms_impersonation', JSON.stringify({ portal: 'sp', name: sp.name, email: sp.email, returnTo: '/superman/users/sps' }));
+                        window.location.assign('/sp');
+                } catch (error: unknown) {
+                        window.alert(error instanceof Error ? error.message : 'Unable to log in as this reseller.');
+                }
+        }
 
 	function closeMenu() {
 		activeMenuId = null;

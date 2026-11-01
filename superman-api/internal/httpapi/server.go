@@ -144,6 +144,7 @@ func (server *Server) App() *fiber.App {
 	protected.Get("/sps/:id", server.spDetail)
 	protected.Put("/sps/:id", server.updateSP)
 	protected.Post("/sps/:id/deposit", server.depositSP)
+	protected.Post("/sps/:id/impersonate", server.impersonateSP)
 	protected.Put("/sps/:id/status", server.updateSPStatus)
 	protected.Get("/senders", server.senders)
 	protected.Post("/senders", server.createSender)
