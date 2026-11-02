@@ -1,0 +1,1 @@
+import"../chunks/xYua6UdR.js";import{h as o,$ as t}from"../chunks/BIwU-fKB.js";import{h as a}from"../chunks/C-gGY3MG.js";import{O as e}from"../chunks/BltuZLFB.js";function s(r){a("1ygugin",m=>{o(()=>{t.title="Create Operator — Superman Administrator"})}),e(r,{})}export{s as component};

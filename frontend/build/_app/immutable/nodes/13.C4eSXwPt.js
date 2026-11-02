@@ -1,0 +1,1 @@
+import"../chunks/xYua6UdR.js";import{component as r}from"./23.CtuAnVZP.js";import{P as p}from"../chunks/mYz7ZnOg.js";function s(o){p(o,{children:(t,a)=>{r(t,{})},$$slots:{default:!0}})}export{s as component};

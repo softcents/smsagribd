@@ -1,0 +1,1 @@
+import"../chunks/xYua6UdR.js";import{h as o,$ as a}from"../chunks/BIwU-fKB.js";import{h as e}from"../chunks/C-gGY3MG.js";import{S as r}from"../chunks/E3YvvKj2.js";function f(t){e("6q5o9k",m=>{o(()=>{a.title="Create Signup Register Gateway — Superman Administrator"})}),r(t,{})}export{f as component};

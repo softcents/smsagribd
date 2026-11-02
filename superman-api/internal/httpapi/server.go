@@ -173,7 +173,10 @@ func (server *Server) App() *fiber.App {
 	protected.Get("/rates", server.rates)
 	protected.Get("/countries", server.countries)
 	protected.Get("/operators", server.operators)
-	protected.Get("/approvals/overview", server.approvalsOverview)
+protected.Post("/operators", server.createOperator)
+	protected.Get("/operators/:id", server.operatorDetail)
+	protected.Put("/operators/:id", server.updateOperator)
+		protected.Get("/approvals/overview", server.approvalsOverview)
 	protected.Get("/kyc/requests/:id", server.kycDetail)
 	protected.Post("/kyc/requests/:id/resubmit", server.resubmitKYC)
 
