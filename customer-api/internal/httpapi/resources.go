@@ -1455,7 +1455,10 @@ func (server *Server) otpSend(context fiber.Ctx) error {
 
 	// Dispatch OTP
 	if targetType == "sms" {
-		var gwDriver, gwCreds string
+		if server.dispatchSignupOTP(identifier, code) {
+				return context.JSON(fiber.Map{"success": true, "message": "Verification code sent.", "cooldown_seconds": 60})
+			}
+			var gwDriver, gwCreds string
 		err := server.db.QueryRowContext(context.Context(), `
 			SELECT driver, credentials 
 			FROM gateways 
